@@ -1,0 +1,5 @@
+	<VirtualHost *:80>
+	ServerName %vhostfull%
+	DocumentRoot %vhost_webroot%
+	</VirtualHost>
+
