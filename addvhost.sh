@@ -1,6 +1,8 @@
 #!/bin/bash
 
+# shellcheck source=./config.sh
 source "config.sh"
+# shellcheck source=./vendors/alerts.sh
 source "vendors/alerts.sh"
 
 STAGE=0
@@ -52,7 +54,14 @@ esac; done
 
 # VERIFY PARAMS
 # if vhost Length is zero
-if [[ -z "${VHOST}" ]]; then usage "Vhost name is not set"; fi;
+if [[ -z "${VHOST}" ]]; then usage "Vhost name is not set."; fi;
+# Detect if sudo is used with the command
+if [[ "${EUID}" -ne 0 ]]; then usage "Run the script with sudo."; fi;
+# Detect if the $USER exists
+if [[ -z "$(getent passwd "${OWNER}")" ]]; then usage "${OWNER} is not a correct user."; fi;
+# Detect if the $GRP exists
+if [[ -z "$(getent group "${GRP}")" ]]; then usage "${GRP} is not a correct group."; fi;
+
 
 if [[ "${STAGE}" = "1" ]]; then
 	vhostfull="${VHOST}.${FOLDER_STAGE}.${DOMAIN}"
@@ -71,22 +80,34 @@ if [[ "${DELETE}" = "1" ]];then
 	#if File is readable
 	if [[ -r "${conf_vhost}" ]]; then
 		rm "${conf_vhost}"
-		alert_success "${conf_vhost} supprimé"
+		alert_success "${conf_vhost} a été supprimé"
 	fi
 	# if File is a directory
 	if [[ -d "${path_vhost}" ]]; then
 		rm -r "${path_vhost}"
-		alert_success "${path_vhost} supprimé"
+		alert_success "${path_vhost} a été supprimé"
 	fi
 else
+	if [[ -d "${path_vhost}" ]]; then
+		alert_error "${path_vhost} already exists"
+		exit 1
+	fi
+
+	if [[ -r "$conf_vhost" ]]; then
+		alert_error "${conf_vhost} aleady exists"
+		exit 2
+	fi
+
 	touch "${conf_vhost}"
 	cat "apache2/vhost" > "${conf_vhost}"
 	sed -i "s|%vhostfull%|${vhostfull}|" "${conf_vhost}"
 	sed -i "s|%vhost_webroot%|${vhost_webroot}|" "${conf_vhost}"
-	alert_success "${conf_vhost} créé"
+	alert_success "${conf_vhost} a été créé"
+
 	mkdir -p "${path_vhost}"
-	# chown "${OWNER}:${GRP}" "${path_vhost}"
-	alert_success "${path_vhost} créé"
+	chown "${OWNER}:${GRP}" "${path_vhost}"
+	alert_success "${path_vhost} a été créé"
 fi
 
-# /etc/init.d/apache2 restart
+# Restart Apache2
+service apache2 restart

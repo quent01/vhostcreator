@@ -15,11 +15,11 @@ WEB_ROOT="public/web"
 
 # The domain to create each vhost
 # the script create only subdomains
-DOMAIN="etil.ovh"
+DOMAIN="perso.tech"
 
 # See /etc/apache2/apache2.conf
-OWNER="ubuntu"
-GRP="ubuntu"
+OWNER="vagrant"
+GRP="vagrant"
 CONF="/etc/apache2/etilconf.d"
 
 
