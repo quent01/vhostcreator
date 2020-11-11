@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# shellcheck source=./config.sh
-source "config.sh"
 # shellcheck source=./vendors/alerts.sh
 source "vendors/alerts.sh"
 
-STAGE=0
-DELETE=0
-VHOST=""
-
-program_name=$0
+FOLDER_CONFIG=config
+PATH_CONFIG_APACHE="${FOLDER_CONFIG}/apache2/vhost"
+PATH_CONFIG_APACHE_SAMPLE="${FOLDER_CONFIG_APACHE}.sample"
+PATH_CONFIG_GLOBAL="${FOLDER_CONFIG}/config.sh"
+PATH_CONFIG_GLOBAL_SAMPLE="${FOLDER_CONFIG}/config.sample.sh"
 
 usage() {
 	if [ -n "$1" ]; then
@@ -42,6 +40,20 @@ usage() {
 	exit 0
 }
 
+if [[ ! -r "config/apache2/vhost" ]]; then alert_error "Copy ${PATH_CONFIG_APACHE_SAMPLE} to ${PATH_CONFIG_APACHE}"; exit 1; fi;
+if [[ ! -r "config/config.sh" ]]; then alert_error "Copy ${PATH_CONFIG_GLOBAL_SAMPLE} to ${PATH_CONFIG_GLOBAL}"; exit 1; fi;
+
+# shellcheck source=./config/config.sh
+source "config/config.sh"
+
+
+STAGE=0
+DELETE=0
+VHOST=""
+
+program_name=$0
+
+
 while [[ "$#" -gt 0 ]]; do case $1 in
   	-n|--name) VHOST="$2"; shift 2;;
 	-d|--delete) DELETE=1; shift;;
@@ -61,6 +73,7 @@ if [[ "${EUID}" -ne 0 ]]; then usage "Run the script with sudo."; fi;
 if [[ -z "$(getent passwd "${OWNER}")" ]]; then usage "${OWNER} is not a correct user."; fi;
 # Detect if the $GRP exists
 if [[ -z "$(getent group "${GRP}")" ]]; then usage "${GRP} is not a correct group."; fi;
+
 
 
 if [[ "${STAGE}" = "1" ]]; then
@@ -99,7 +112,7 @@ else
 	fi
 
 	touch "${conf_vhost}"
-	cat "apache2/vhost" > "${conf_vhost}"
+	cat "config/apache2/vhost" > "${conf_vhost}"
 	sed -i "s|%vhostfull%|${vhostfull}|" "${conf_vhost}"
 	sed -i "s|%vhost_webroot%|${vhost_webroot}|" "${conf_vhost}"
 	alert_success "${conf_vhost} a été créé"
