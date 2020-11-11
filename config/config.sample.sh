@@ -22,5 +22,4 @@ OWNER="vagrant"
 GRP="vagrant"
 CONF="/etc/apache2/etilconf.d"
 
-
-export DIR DOMAIN CONF
+export DIR FOLDER_STAGE folder_prod WEB_ROOT DOMAIN OWNER GRP CONF

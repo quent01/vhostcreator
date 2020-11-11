@@ -40,11 +40,13 @@ usage() {
 	exit 0
 }
 
-if [[ ! -r "config/apache2/vhost" ]]; then alert_error "Copy ${PATH_CONFIG_APACHE_SAMPLE} to ${PATH_CONFIG_APACHE}"; exit 1; fi;
-if [[ ! -r "config/config.sh" ]]; then alert_error "Copy ${PATH_CONFIG_GLOBAL_SAMPLE} to ${PATH_CONFIG_GLOBAL}"; exit 1; fi;
+if [[ ! -r "${PATH_CONFIG_APACHE}" ]]; then alert_error "Copy ${PATH_CONFIG_APACHE_SAMPLE} to ${PATH_CONFIG_APACHE}"; exit 1; fi;
+if [[ ! -r "${PATH_CONFIG_GLOBAL}" ]]; then alert_error "Copy ${PATH_CONFIG_GLOBAL_SAMPLE} to ${PATH_CONFIG_GLOBAL}"; exit 1; fi;
 
 # shellcheck source=./config/config.sh
 source "config/config.sh"
+
+if [[ ! -r "${CONF}" ]]; then alert_error "Create ${CONF} folder."; exit 1; fi;
 
 
 STAGE=0
@@ -52,7 +54,6 @@ DELETE=0
 VHOST=""
 
 program_name=$0
-
 
 while [[ "$#" -gt 0 ]]; do case $1 in
   	-n|--name) VHOST="$2"; shift 2;;
